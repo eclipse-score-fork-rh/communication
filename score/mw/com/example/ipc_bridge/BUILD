@@ -23,6 +23,7 @@ cc_binary(
     ],
     data = ["etc/mw_com_config.json"],
     features = COMPILER_WARNING_FEATURES,
+    visibility = ["//visibility:public"],
     deps = [
         ":sample_sender_receiver",
         "//score/mw/com",
@@ -81,6 +82,7 @@ rust_binary(
     srcs = ["ipc_bridge.rs"],
     data = ["etc/mw_com_config.json"],
     features = ["link_std_cpp_lib"],
+    visibility = ["//visibility:public"],
     rustc_flags = ["-Clink-arg=-lstdc++"],
     deps = [
         ":ipc_bridge_gen_rs",
