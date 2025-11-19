@@ -16,8 +16,8 @@ bazel_dep(name = "platforms", version = "0.0.11")
 
 git_override(
     module_name = "os_autosd",
-    remote = "https://github.com/eclipse-score/inc_os_autosd",
-    branch = "main",
+    remote = "https://github.com/bilelmoussaoui/inc_os_autosd",
+    branch = "bilelmoussaoui/toolchain",
  )
 
 bazel_dep(name = "os_autosd", version = "1.0.0")
