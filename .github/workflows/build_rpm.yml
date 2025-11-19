@@ -29,18 +29,22 @@ on:
 
 jobs:
   build_rpm:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    container: fedora:latest
     permissions:
       contents: write  # Required to create releases and upload assets
     steps:
-      - uses: bazel-contrib/setup-bazel@0.15.0
-        with:
-          bazelisk-cache: true
-          disk-cache: ${{ github.workflow }}
-          repository-cache: true
+      - name: Install dependencies
+        run: |
+          dnf install -y git rpm-devel git dnf-plugins-core rpm-build rpm cpio curl findutils which 'dnf-command(copr)'
 
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
+
+      - name: Install Bazel from Copr
+        run: |
+          dnf copr enable -y lihaohong/bazel
+          dnf install -y bazel
 
       - name: Build RPM packages
         run: |
@@ -82,6 +86,41 @@ jobs:
 
             These files are updated automatically on each push to main and development branches.
             SRPM URL for COPR: `https://github.com/${{ github.repository }}/releases/download/continuous/lola-devel-*.src.rpm`
+
+      # Trigger Copr build after continuous release upload
+      - name: Trigger Copr build
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devel') || startsWith(github.ref, 'refs/heads/release/'))
+        env:
+          COPR_API_TOKEN: ${{ secrets.COPR_API_TOKEN }}
+          COPR_PROJECT: ${{ secrets.COPR_PROJECT }}
+          COPR_USERNAME: ${{ secrets.COPR_USERNAME }}
+          COPR_LOGIN: ${{ secrets.COPR_LOGIN }}
+        run: |
+          # Install Copr CLI
+          dnf install -y copr-cli
+
+          # Configure Copr credentials
+          mkdir -p ~/.config
+          cat > ~/.config/copr <<EOF
+          [copr-cli]
+          login = ${COPR_LOGIN}
+          username = ${COPR_USERNAME}
+          token = ${COPR_API_TOKEN}
+          copr_url = https://copr.fedorainfracloud.org
+          EOF
+
+          # Get the SRPM filename from local artifacts
+          SRPM_FILE=$(ls artifacts/*.src.rpm | head -n1 | xargs basename)
+          SRPM_URL="https://github.com/${{ github.repository }}/releases/download/continuous/${SRPM_FILE}"
+
+          # Submit build to Copr for each chroot
+          echo "Submitting build to Copr: ${SRPM_URL}"
+          copr build ${COPR_PROJECT} ${SRPM_URL} \
+            --chroot centos-stream-10-x86_64 \
+            --chroot centos-stream-9-x86_64 \
+            --chroot epel-10-x86_64 \
+            --chroot epel-9-x86_64 \
+            --nowait
 
       # Upload to tagged release assets
       - name: Upload release assets
