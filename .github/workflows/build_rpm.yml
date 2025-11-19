@@ -1,0 +1,91 @@
+# *******************************************************************************
+# Copyright (c) 2024-2025 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# Workflow configuration for building RPM packages
+# This workflow builds the project and generates RPM packages along with source tarballs
+# Artifacts are uploaded for every commit on pull requests and pushes to main branches
+
+name: Build RPM Packages
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - main
+      - devel
+      - 'release/**'
+  release:
+    types: [published]
+
+jobs:
+  build_rpm:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write  # Required to create releases and upload assets
+    steps:
+      - uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Build RPM packages
+        run: |
+          bazel build //:lola-devel
+
+      - name: Copy artifacts to staging directory
+        run: |
+          mkdir -p artifacts
+          cp bazel-bin/lola-devel-*.x86_64.rpm artifacts/
+          cp bazel-bin/lola-devel-*.src.rpm artifacts/
+          cp bazel-bin/lola-devel-*.tar.gz artifacts/
+          cp bazel-bin/lola-devel-*.tar.gz.sha256 artifacts/
+
+      # Upload as GitHub Actions artifacts (zipped archives, 30-day retention)
+      - name: Upload all artifacts as zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm-packages-${{ github.sha }}
+          path: artifacts/*
+          retention-days: 30
+          if-no-files-found: error
+
+      # Upload to continuous release for plain file access (needed for COPR)
+      # This creates/updates a "continuous" release with direct file URLs
+      - name: Upload to continuous release
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devel') || startsWith(github.ref, 'refs/heads/release/'))
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: continuous
+          name: Continuous Build
+          prerelease: true
+          files: artifacts/*
+          body: |
+            Automated continuous build from the latest commit.
+
+            **Commit:** ${{ github.sha }}
+            **Branch:** ${{ github.ref_name }}
+            **Date:** ${{ github.event.head_commit.timestamp }}
+
+            These files are updated automatically on each push to main and development branches.
+            SRPM URL for COPR: `https://github.com/${{ github.repository }}/releases/download/continuous/lola-devel-*.src.rpm`
+
+      # Upload to tagged release assets
+      - name: Upload release assets
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*

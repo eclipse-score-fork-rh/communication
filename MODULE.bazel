@@ -175,3 +175,15 @@ use_repo(toolchains_qnx, "toolchains_qnx_sdp")
 use_repo(toolchains_qnx, "toolchains_qnx_qcc")
 
 bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
+# RPM packaging support
+bazel_dep(name = "rules_rpm", version = "0.1.0")
+git_override(
+    module_name = "rules_rpm",
+    remote = "https://github.com/bilelmoussaoui/bazel-rpm.git",
+    branch = "main",
+)
+
+# Register the RPM toolchain
+rpm_toolchain = use_extension("@rules_rpm//toolchains:extensions.bzl", "rpm_toolchain")
+use_repo(rpm_toolchain, "rpm_toolchain")
+register_toolchains("@rules_rpm//toolchains:linux_x86_64")

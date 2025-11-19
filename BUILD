@@ -12,6 +12,7 @@
 # *******************************************************************************
 
 load("@aspect_rules_lint//format:defs.bzl", "format_multirun", "format_test")
+load("@rules_rpm//rpm:defs.bzl", "rpm_package")
 
 exports_files([
     "wait_free_stack_fix.patch",
@@ -30,4 +31,24 @@ format_test(
     starlark = "@buildifier_prebuilt//:buildifier",
     tags = ["manual"],
     workspace = "//:LICENSE",
+)
+
+rpm_package(
+    name = "lola-devel",
+    libraries = [
+        "//score/mw/com:com",
+        "//score/mw/com:config_schema",
+    ],
+    binaries = [
+        "//score/mw/com/example/ipc_bridge:ipc_bridge_cpp",
+        "//score/mw/com/example/ipc_bridge:ipc_bridge_rs",
+    ],
+    data = [
+        "//score/mw/com/example/ipc_bridge:etc/mw_com_config.json",
+    ],
+    config_dir = "/etc/lola",
+    data_dir = "/usr/share/lola/examples",
+    version = "1.0.0",
+    summary = "LOLA Demo",
+    description = "LOLA middleware communication libraries for development including core communication, configuration components, and example client/server binaries for testing",
 )
