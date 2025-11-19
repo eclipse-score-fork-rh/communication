@@ -14,38 +14,21 @@ module(name = "communication")
 
 bazel_dep(name = "platforms", version = "0.0.11")
 
-bazel_dep(name = "score_toolchains_gcc", version = "0.4", dev_dependency = True)
+git_override(
+    module_name = "os_autosd",
+    remote = "https://github.com/eclipse-score/inc_os_autosd",
+    branch = "main",
+ )
 
-gcc = use_extension(
-    "@score_toolchains_gcc//extentions:gcc.bzl",
-    "gcc",
-    dev_dependency = True,
-)
-gcc.toolchain(
-    sha256 = "457f5f20f57528033cb840d708b507050d711ae93e009388847e113b11bf3600",
-    strip_prefix = "x86_64-unknown-linux-gnu",
-    url = "https://github.com/eclipse-score/toolchains_gcc_packages/releases/download/0.0.1/x86_64-unknown-linux-gnu_gcc12.tar.gz",
+bazel_dep(name = "os_autosd", version = "1.0.0")
+
+autosd_10_gcc = use_extension("@os_autosd//toolchain/autosd_10_gcc:extensions.bzl", "autosd_10_gcc_extension")
+autosd_10_gcc.configure(
+    c_flags = ["-Wall", "-Wno-error=deprecated-declarations", "-Wno-error=maybe-uninitialized", "-fPIC"],
+    cxx_flags = ["-Wall", "-Wno-error=deprecated-declarations", "-Wno-error=maybe-uninitialized", "-fPIC"],
 )
 
-# TODO to be moved to toolchain. https://github.com/eclipse-score/toolchains_gcc/issues/11
-gcc.extra_features(
-    features = [
-        "minimal_warnings",
-        "treat_warnings_as_errors",
-    ],
-)
-gcc.warning_flags(
-    minimal_warnings = [
-        "-Wall",
-        "-Wno-error=deprecated-declarations",
-    ],
-    strict_warnings = [
-        "-Wextra",
-        "-Wpedantic",
-    ],
-    treat_warnings_as_errors = ["-Werror"],
-)
-use_repo(gcc, "gcc_toolchain", "gcc_toolchain_gcc")
+use_repo(autosd_10_gcc, "autosd_10_gcc_repo")
 
 bazel_dep(name = "toolchains_llvm", version = "1.5.0", dev_dependency = True)
 
