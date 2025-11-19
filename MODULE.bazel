@@ -158,7 +158,7 @@ bazel_dep(name = "score_toolchains_qnx", version = "0.0.2", dev_dependency = Tru
 git_override(
     module_name = "score_toolchains_qnx",
     commit = "0c23ee8fd7e8ac1091017b7080a833fd5be5c29f",
-    remote = "git@github.com:eclipse-score/toolchains_qnx.git",
+    remote = "https://github.com/eclipse-score/toolchains_qnx.git",
 )
 
 toolchains_qnx = use_extension(
