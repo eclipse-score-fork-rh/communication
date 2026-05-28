@@ -25,6 +25,7 @@ sources:
 
 archs:
   - "amd64"
+  - "arm64"
 
 packages:
   - "bash"

@@ -25,6 +25,7 @@ rust_binary(
     rustc_flags = select({
         "@platforms//os:linux": [
             "-Clink-arg=-no-pie",
+            "-Clink-arg=-latomic",
             "-Clink-arg=-lstdc++",
         ],
         "//conditions:default": [],
