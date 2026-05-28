@@ -87,6 +87,8 @@ bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.5.1", dev_dependency
 git_override(
     module_name = "score_bazel_cpp_toolchains",
     commit = "72c29412933fbac67086b3566007ef5ee0862d99",
+    patches = ["//:autosd_aarch64_exec_platform.patch"],
+    patch_strip = 1,
     remote = "https://github.com/eclipse-score/bazel_cpp_toolchains.git",
 )
 

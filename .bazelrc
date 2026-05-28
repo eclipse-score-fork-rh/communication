@@ -131,8 +131,11 @@ build:x86_64-autosd --extra_toolchains=@score_toolchains_rust//toolchains/ferroc
 # -------------------------------------------------------------------------------
 build:aarch64-autosd --force_pic
 build:aarch64-autosd --platforms=@score_bazel_platforms//:aarch64-linux-autosd10
+build:aarch64-autosd --host_platform=@score_bazel_platforms//:aarch64-linux-autosd10
 build:aarch64-autosd --extra_toolchains=@score_autosd10_aarch64_toolchain//:aarch64-linux-autosd10
 build:aarch64-autosd --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_linux_gnu
+build:aarch64-autosd --copt=-march=armv8.1-a
+build:aarch64-autosd --host_copt=-march=armv8.1-a
 
 # Import AI checker custom configuration
 try-import %workspace%/.bazelrc.ai_checker

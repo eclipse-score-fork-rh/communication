@@ -1,0 +1,10 @@
+--- a/templates/BUILD.template
++++ b/templates/BUILD.template
+@@ -40,7 +40,6 @@ cc_toolchain(
+ toolchain(
+     name = "%{tc_cpu}-%{tc_os}%{tc_identifier_short_1}%{tc_identifier_short_2}",
+     exec_compatible_with = [
+-        "@platforms//cpu:x86_64",
+         "@platforms//os:linux",
+     ],
+     target_compatible_with = [
